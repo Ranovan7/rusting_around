@@ -14,3 +14,5 @@
 - options
     </br>`# <int>` number of cities generated
     </br>`# <int>` how large the graph border will be
+- result example
+    </br>![grab-landing-page](https://github.com/ranovan7/rusting_around/blob/master/crates/tsp/examples/30_cities.gif)

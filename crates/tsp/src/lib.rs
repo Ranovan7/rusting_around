@@ -9,7 +9,9 @@ use utils::{
     generate_cities,
     get_route_distance,
     get_all_possible_pairings,
-    check_swap_viability
+    check_swap_viability,
+    create_plot,
+    animate_plot
 };
 use algorithms::{ should_edges_swap };
 
@@ -23,7 +25,8 @@ pub fn travelling_salesman(args: env::Args) {
         process::exit(1);
     }
 
-    let mut routes = generate_cities(config);
+    let mut routes = generate_cities(&config);
+    let mut plots = vec![];
 
     println!("Current Distance : {}", get_route_distance(&routes));
     println!("Calculating...");
@@ -39,6 +42,7 @@ pub fn travelling_salesman(args: env::Args) {
                 swapped = should_edges_swap(&mut routes, pair.0, pair.1);
 
                 if swapped {
+                    plots.push(create_plot(&routes));
                     break;
                 }
             }
@@ -50,4 +54,6 @@ pub fn travelling_salesman(args: env::Args) {
     }
 
     println!("Best Distance Results : {}", get_route_distance(&routes));
+
+    animate_plot(&plots, &config).unwrap();
 }
