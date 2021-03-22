@@ -45,16 +45,6 @@ pub fn generate_cities(config: &Config) -> Vec<(i32, i32)> {
     results
 }
 
-pub fn get_route_distance(routes: &Vec<(i32, i32)>) -> f32 {
-    let mut distance = 0.0;
-    for (i, route) in routes.iter().enumerate() {
-        let prev_i = ((i + routes.len()) - 1) % routes.len();
-        distance += euclidean_distance(route, &routes[prev_i]);
-    }
-
-    distance
-}
-
 pub fn get_all_possible_pairings(
     routes: &Vec<(i32, i32)>
 ) -> Vec<(usize, usize)> {
@@ -67,34 +57,6 @@ pub fn get_all_possible_pairings(
     results.shuffle(&mut thread_rng());
 
     results
-}
-
-pub fn check_swap_viability(a: usize, b: usize, length: usize) -> bool {
-    let last_index = length - 1;
-    let diff = a as i32 - b as i32;
-    match (a, b) {
-        (0, bb) => {
-            if bb == last_index {
-                false
-            } else {
-                true
-            }
-        },
-        (aa, 0) => {
-            if aa == last_index {
-                false
-            } else {
-                true
-            }
-        },
-        (_, _) => {
-            if diff.abs() == 1 {
-                false
-            } else {
-                true
-            }
-        }
-    }
 }
 
 pub fn create_plot(routes: &Vec<(i32, i32)>) -> Vec<(f64, f64)> {
@@ -113,13 +75,18 @@ pub fn create_plot(routes: &Vec<(i32, i32)>) -> Vec<(f64, f64)> {
     plot
 }
 
-pub fn animate_plot(plots: &Vec<Vec<(f64, f64)>>, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
+pub fn animate_plot(plots: &mut Vec<Vec<(f64, f64)>>, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     let root = BitMapBackend::gif(
                 format!("./crates/tsp/examples/{}_cities.gif", config.n_city),
                 (800, 600),
-                1_00
+                100
             )?
         .into_drawing_area();
+
+    // last elements is multiplied to last longer on gif
+    for _ in 1..10 {
+        plots.push(plots.last().unwrap().to_vec())
+    }
 
     for plot in plots {
         root.fill(&WHITE)?;
