@@ -949,6 +949,7 @@ name = "rusting_around"
 version = "0.1.0"
 dependencies = [
  "tsp",
+ "web_server",
 ]
 
 [[package]]
@@ -1223,6 +1224,10 @@ dependencies = [
  "js-sys",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "web_server"
+version = "0.1.0"
 
 [[package]]
 name = "winapi"
