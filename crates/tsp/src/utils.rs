@@ -6,6 +6,7 @@ use plotters::prelude::*;
 pub struct Config {
     pub n_city: i32,
     pub border: i32,
+    pub saves: bool
 }
 
 impl Config {
@@ -18,10 +19,15 @@ impl Config {
             Some(arg) => arg.parse().unwrap(),
             None => 1000,
         };
+        let saves: bool = match args.next() {
+            Some(arg) => true,
+            None => false,
+        };
 
         Ok(Config {
             n_city,
-            border
+            border,
+            saves
         })
     }
 }

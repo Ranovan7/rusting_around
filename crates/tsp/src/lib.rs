@@ -52,5 +52,7 @@ pub fn travelling_salesman(args: env::Args) {
 
     println!("Best Distance Results : {}", route.total_distance());
 
-    animate_plot(&mut plots, &config).unwrap();
+    if config.saves {
+        animate_plot(&mut plots, &config).unwrap();
+    }
 }
