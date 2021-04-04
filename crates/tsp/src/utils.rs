@@ -20,7 +20,7 @@ impl Config {
             None => 1000,
         };
         let saves: bool = match args.next() {
-            Some(arg) => true,
+            Some(_arg) => true,
             None => false,
         };
 
