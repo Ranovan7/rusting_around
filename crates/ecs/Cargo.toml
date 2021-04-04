@@ -1,5 +1,5 @@
 [package]
-name = "rusting_around"
+name = "ecs"
 version = "0.1.0"
 authors = ["Ranovan7 <romyranovan@gmail.com>"]
 edition = "2018"
@@ -7,9 +7,3 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tsp = { path = "crates/tsp" }
-ecs = { path = "crates/ecs" }
-web_server = { path = "crates/web_server" }
-
-[workspace]
-members = ["crates/*"]

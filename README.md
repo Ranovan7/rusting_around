@@ -23,3 +23,9 @@
 - accessed on http://localhost:7878/
 - default command
     </br>`# cargo run ws`
+
+### ECS (Entity-Component-System) Example
+
+- Example of ECS Architecture, currently still Entity and Component part
+- default command
+    </br>`# cargo run ecs`
