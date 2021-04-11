@@ -68,6 +68,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "boids"
+version = "0.1.0"
+
+[[package]]
 name = "bstr"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -952,6 +956,7 @@ dependencies = [
 name = "rusting_around"
 version = "0.1.0"
 dependencies = [
+ "boids",
  "ecs",
  "tsp",
  "web_server",
