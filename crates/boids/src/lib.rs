@@ -1,5 +1,6 @@
 use bevy::{
     core::FixedTimestep,
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
     render::pass::ClearColor,
     sprite::collide_aabb::{collide, Collision},
@@ -12,11 +13,12 @@ static MIN_SPEED: f32 = 180.0;
 static MAX_SPEED: f32 = 250.0;
 static ACC_LIMIT: f32 = 50.0;
 
-/// An implementation of the classic game "Breakout"
 const TIME_STEP: f32 = 1.0 / 60.0;
 pub fn boids_simulation() {
     App::build()
         .add_plugins(DefaultPlugins)
+        // .add_plugin(LogDiagnosticsPlugin::default())
+        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .insert_resource(BirdConfig{
             ALIGNMENT_RAD: 100.0,
             COHESION_RAD: 100.0,
