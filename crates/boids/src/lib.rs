@@ -7,9 +7,6 @@ use rand::Rng;
 
 static WIDTH: f32 = 1600.0;
 static HEIGHT: f32 = 900.0;
-static ALIGNMENT_RAD: f32 = 100.0;
-static COHESION_RAD: f32 = 100.0;
-static SEPARATION_RAD: f32 = 100.0;
 static MIN_SPEED: f32 = 180.0;
 static MAX_SPEED: f32 = 250.0;
 static ACC_LIMIT: f32 = 50.0;
@@ -19,6 +16,11 @@ const TIME_STEP: f32 = 1.0 / 60.0;
 pub fn boids_simulation() {
     App::build()
         .add_plugins(DefaultPlugins)
+        .insert_resource(BirdConfig{
+            ALIGNMENT_RAD: 100.0,
+            COHESION_RAD: 100.0,
+            SEPARATION_RAD: 100.0,
+        })
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
         .add_startup_system(setup.system())
         .add_system(border_wrap_system.system())
@@ -26,6 +28,12 @@ pub fn boids_simulation() {
         // .add_system(border_avoidance_system.system())
         .add_system(bird_movement_system.system())
         .run();
+}
+
+struct BirdConfig {
+    ALIGNMENT_RAD: f32,
+    COHESION_RAD: f32,
+    SEPARATION_RAD: f32,
 }
 
 struct BirdVel {
@@ -154,7 +162,8 @@ fn bird_movement_system(mut bird_query: Query<(&mut BirdVel, &mut BirdAcc, &mut 
 
 fn emergence_system(
     mut bird_query: Query<(&BirdVel, &Transform, &mut BirdAcc)>,
-    other_bird_query: Query<(&BirdVel, &Transform)>
+    other_bird_query: Query<(&BirdVel, &Transform)>,
+    config: Res<BirdConfig>,
 ) {
     for (b_vel, b_trans, mut b_acc) in bird_query.iter_mut() {
         let mut steer_align = Vec3::new(0.0, 0.0, 0.0);
@@ -170,17 +179,17 @@ fn emergence_system(
             }
 
             let distance = euclidean_distance(b_trans.translation, ob_trans.translation);
-            if distance < ALIGNMENT_RAD {
+            if distance < config.ALIGNMENT_RAD {
                 count_align += 1;
                 steer_align += ob_vel.velocity;
             }
 
-            if distance < COHESION_RAD {
+            if distance < config.COHESION_RAD {
                 count_cohesion += 1;
                 steer_cohesion += ob_trans.translation;
             }
 
-            if distance < SEPARATION_RAD {
+            if distance < config.SEPARATION_RAD {
                 count_separation += 1;
                 let mut diff = b_trans.translation.clone();
                 diff -= ob_trans.translation;
@@ -223,22 +232,23 @@ fn emergence_system(
 }
 
 fn border_avoidance_system(
-    mut bird_query: Query<(&BirdVel, &Transform, &mut BirdAcc)>
+    mut bird_query: Query<(&BirdVel, &Transform, &mut BirdAcc)>,
+    config: Res<BirdConfig>,
 ) {
     for (b_vel, b_trans, mut b_acc) in bird_query.iter_mut() {
         let half_w = WIDTH / 2.0;
         let half_h = HEIGHT / 2.0;
         let mut diff_x = 0.0;
-        if (half_w - b_trans.translation.x).abs() < SEPARATION_RAD {
+        if (half_w - b_trans.translation.x).abs() < config.SEPARATION_RAD {
             diff_x = 1.0;
-        } else if half_w - b_trans.translation.x < SEPARATION_RAD {
+        } else if half_w - b_trans.translation.x < config.SEPARATION_RAD {
             diff_x = -1.0;
         }
 
         let mut diff_y = 0.0;
-        if (half_h - b_trans.translation.y).abs() < SEPARATION_RAD {
+        if (half_h - b_trans.translation.y).abs() < config.SEPARATION_RAD {
             diff_y = 1.0;
-        } else if half_h - b_trans.translation.y < SEPARATION_RAD {
+        } else if half_h - b_trans.translation.y < config.SEPARATION_RAD {
             diff_y = -1.0;
         }
 
