@@ -6,6 +6,12 @@
 
 ## Projects/Implementations
 
+### Boids Simulation using Bevy
+
+- Simulating Boids movement using Bevy
+- default command
+</br>`# cargo run boids`
+
 ### Travelling Salesman Problem
 
 - Edges Swap implementation for Travelling Salesman Problem (TSP)
