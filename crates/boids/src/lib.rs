@@ -1,4 +1,5 @@
 use bevy::{
+    core::FixedTimestep,
     prelude::*,
     render::pass::ClearColor,
     sprite::collide_aabb::{collide, Collision},
@@ -23,10 +24,16 @@ pub fn boids_simulation() {
         })
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
         .add_startup_system(setup.system())
-        .add_system(border_wrap_system.system())
-        .add_system(emergence_system.system())
-        // .add_system(border_avoidance_system.system())
-        .add_system(bird_movement_system.system())
+        .add_system(config_update_system.system())
+        .add_system(show_info_system.system())
+        .add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
+                .with_system(border_wrap_system.system())
+                .with_system(emergence_system.system())
+                // .with_system(border_avoidance_system.system())
+                .with_system(bird_movement_system.system()),
+        )
         .run();
 }
 
@@ -82,8 +89,50 @@ fn setup(
     // cameras
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
+    // config information
+    commands.spawn_bundle(TextBundle {
+        text: Text {
+            sections: vec![
+                TextSection {
+                    value: "Alignment Radius: ".to_string(),
+                    style: TextStyle {
+                        font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                        font_size: 20.0,
+                        color: Color::rgb(0.2, 0.2, 0.2),
+                    },
+                },
+                TextSection {
+                    value: "Cohesion Radius: ".to_string(),
+                    style: TextStyle {
+                        font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                        font_size: 20.0,
+                        color: Color::rgb(0.2, 0.2, 0.2),
+                    },
+                },
+                TextSection {
+                    value: "Separation Radius: ".to_string(),
+                    style: TextStyle {
+                        font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                        font_size: 20.0,
+                        color: Color::rgb(0.2, 0.2, 0.2),
+                    },
+                },
+            ],
+            ..Default::default()
+        },
+        style: Style {
+            position_type: PositionType::Absolute,
+            position: Rect {
+                top: Val::Px(5.0),
+                left: Val::Px(5.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        ..Default::default()
+    });
     // Add walls
-    let wall_material = materials.add(Color::rgb(0.2, 0.2, 0.2).into());
+    let wall_material = materials.add(Color::rgb(0.6, 0.6, 0.6).into());
     let wall_thickness = 4.0;
     let bounds = Vec2::new(WIDTH + wall_thickness*2.0, HEIGHT + wall_thickness*2.0);
     // left
@@ -147,6 +196,42 @@ fn setup(
                 acceleration: Vec3::new(0.0, 0.0, 0.0)
             });
     }
+}
+
+fn config_update_system(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut config: ResMut<BirdConfig>,
+) {
+    if keyboard_input.pressed(KeyCode::Q) {
+        config.ALIGNMENT_RAD -= 10.0;
+    }
+    if keyboard_input.pressed(KeyCode::W) {
+        config.ALIGNMENT_RAD += 10.0;
+    }
+    config.ALIGNMENT_RAD = config.ALIGNMENT_RAD.max(0.0);
+
+    if keyboard_input.pressed(KeyCode::A) {
+        config.COHESION_RAD -= 10.0;
+    }
+    if keyboard_input.pressed(KeyCode::S) {
+        config.COHESION_RAD += 10.0;
+    }
+    config.COHESION_RAD = config.COHESION_RAD.max(0.0);
+
+    if keyboard_input.pressed(KeyCode::Z) {
+        config.SEPARATION_RAD -= 10.0;
+    }
+    if keyboard_input.pressed(KeyCode::X) {
+        config.SEPARATION_RAD += 10.0;
+    }
+    config.SEPARATION_RAD = config.SEPARATION_RAD.max(0.0);
+}
+
+fn show_info_system(config: Res<BirdConfig>, mut query: Query<&mut Text>) {
+    let mut text = query.single_mut().unwrap();
+    text.sections[0].value = format!("Alignment Radius: {}", config.ALIGNMENT_RAD);
+    text.sections[1].value = format!("\nCohesion Radius: {}", config.COHESION_RAD);
+    text.sections[2].value = format!("\nSeparation Radius: {}", config.SEPARATION_RAD);
 }
 
 fn bird_movement_system(mut bird_query: Query<(&mut BirdVel, &mut BirdAcc, &mut Transform)>) {
