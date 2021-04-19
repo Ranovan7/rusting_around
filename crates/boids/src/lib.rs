@@ -23,6 +23,7 @@ pub fn boids_simulation() {
             ALIGNMENT_RAD: 100.0,
             COHESION_RAD: 100.0,
             SEPARATION_RAD: 100.0,
+            DELAY: 0.0,
         })
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
         .add_startup_system(setup.system())
@@ -31,9 +32,9 @@ pub fn boids_simulation() {
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(border_wrap_system.system())
+                // .with_system(border_wrap_system.system())
                 .with_system(emergence_system.system())
-                // .with_system(border_avoidance_system.system())
+                .with_system(border_avoidance_system.system())
                 .with_system(bird_movement_system.system()),
         )
         .run();
@@ -43,6 +44,7 @@ struct BirdConfig {
     ALIGNMENT_RAD: f32,
     COHESION_RAD: f32,
     SEPARATION_RAD: f32,
+    DELAY: f32
 }
 
 struct BirdVel {
@@ -204,29 +206,34 @@ fn config_update_system(
     keyboard_input: Res<Input<KeyCode>>,
     mut config: ResMut<BirdConfig>,
 ) {
-    if keyboard_input.pressed(KeyCode::Q) {
-        config.ALIGNMENT_RAD -= 10.0;
-    }
-    if keyboard_input.pressed(KeyCode::W) {
-        config.ALIGNMENT_RAD += 10.0;
-    }
-    config.ALIGNMENT_RAD = config.ALIGNMENT_RAD.max(0.0);
+    if config.DELAY <= 0.0 {
+        if keyboard_input.pressed(KeyCode::Q) {
+            config.ALIGNMENT_RAD -= 10.0;
+        }
+        if keyboard_input.pressed(KeyCode::W) {
+            config.ALIGNMENT_RAD += 10.0;
+        }
+        config.ALIGNMENT_RAD = config.ALIGNMENT_RAD.max(0.0);
 
-    if keyboard_input.pressed(KeyCode::A) {
-        config.COHESION_RAD -= 10.0;
-    }
-    if keyboard_input.pressed(KeyCode::S) {
-        config.COHESION_RAD += 10.0;
-    }
-    config.COHESION_RAD = config.COHESION_RAD.max(0.0);
+        if keyboard_input.pressed(KeyCode::A) {
+            config.COHESION_RAD -= 10.0;
+        }
+        if keyboard_input.pressed(KeyCode::S) {
+            config.COHESION_RAD += 10.0;
+        }
+        config.COHESION_RAD = config.COHESION_RAD.max(0.0);
 
-    if keyboard_input.pressed(KeyCode::Z) {
-        config.SEPARATION_RAD -= 10.0;
+        if keyboard_input.pressed(KeyCode::Z) {
+            config.SEPARATION_RAD -= 10.0;
+        }
+        if keyboard_input.pressed(KeyCode::X) {
+            config.SEPARATION_RAD += 10.0;
+        }
+        config.SEPARATION_RAD = config.SEPARATION_RAD.max(0.0);
+        config.DELAY = 0.2;
+    } else {
+        config.DELAY -= TIME_STEP;
     }
-    if keyboard_input.pressed(KeyCode::X) {
-        config.SEPARATION_RAD += 10.0;
-    }
-    config.SEPARATION_RAD = config.SEPARATION_RAD.max(0.0);
 }
 
 fn show_info_system(config: Res<BirdConfig>, mut query: Query<&mut Text>) {
@@ -325,26 +332,18 @@ fn border_avoidance_system(
     for (b_vel, b_trans, mut b_acc) in bird_query.iter_mut() {
         let half_w = WIDTH / 2.0;
         let half_h = HEIGHT / 2.0;
-        let mut diff_x = 0.0;
-        if (half_w - b_trans.translation.x).abs() < config.SEPARATION_RAD {
-            diff_x = 1.0;
-        } else if half_w - b_trans.translation.x < config.SEPARATION_RAD {
-            diff_x = -1.0;
+
+        if b_trans.translation.x < -half_w {
+            b_acc.acceleration.x = b_acc.acceleration.x.abs();
+        } else if b_trans.translation.x > half_w {
+            b_acc.acceleration.x = -(b_acc.acceleration.x.abs());
         }
 
-        let mut diff_y = 0.0;
-        if (half_h - b_trans.translation.y).abs() < config.SEPARATION_RAD {
-            diff_y = 1.0;
-        } else if half_h - b_trans.translation.y < config.SEPARATION_RAD {
-            diff_y = -1.0;
+        if b_trans.translation.y < -half_h {
+            b_acc.acceleration.y = b_acc.acceleration.y.abs();
+        } else if b_trans.translation.y > half_h {
+            b_acc.acceleration.y = -(b_acc.acceleration.y.abs());
         }
-
-        let mut steer = Vec3::new(diff_x, diff_y, 0.0);
-        steer = vec_set_mag(steer, MIN_SPEED);
-        steer -= b_vel.velocity;
-
-        steer = vec_clip(steer, -ACC_LIMIT, ACC_LIMIT);
-        b_acc.acceleration += steer;
     }
 }
 
