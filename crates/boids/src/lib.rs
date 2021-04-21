@@ -23,7 +23,6 @@ pub fn boids_simulation() {
             ALIGNMENT_RAD: 100.0,
             COHESION_RAD: 100.0,
             SEPARATION_RAD: 100.0,
-            DELAY: 0.0,
         })
         .insert_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
         .add_startup_system(setup.system())
@@ -44,7 +43,6 @@ struct BirdConfig {
     ALIGNMENT_RAD: f32,
     COHESION_RAD: f32,
     SEPARATION_RAD: f32,
-    DELAY: f32
 }
 
 struct BirdVel {
@@ -206,34 +204,29 @@ fn config_update_system(
     keyboard_input: Res<Input<KeyCode>>,
     mut config: ResMut<BirdConfig>,
 ) {
-    if config.DELAY <= 0.0 {
-        if keyboard_input.pressed(KeyCode::Q) {
-            config.ALIGNMENT_RAD -= 10.0;
-        }
-        if keyboard_input.pressed(KeyCode::W) {
-            config.ALIGNMENT_RAD += 10.0;
-        }
-        config.ALIGNMENT_RAD = config.ALIGNMENT_RAD.max(0.0);
-
-        if keyboard_input.pressed(KeyCode::A) {
-            config.COHESION_RAD -= 10.0;
-        }
-        if keyboard_input.pressed(KeyCode::S) {
-            config.COHESION_RAD += 10.0;
-        }
-        config.COHESION_RAD = config.COHESION_RAD.max(0.0);
-
-        if keyboard_input.pressed(KeyCode::Z) {
-            config.SEPARATION_RAD -= 10.0;
-        }
-        if keyboard_input.pressed(KeyCode::X) {
-            config.SEPARATION_RAD += 10.0;
-        }
-        config.SEPARATION_RAD = config.SEPARATION_RAD.max(0.0);
-        config.DELAY = 0.2;
-    } else {
-        config.DELAY -= TIME_STEP;
+    if keyboard_input.just_released(KeyCode::Q) {
+        config.ALIGNMENT_RAD -= 10.0;
     }
+    if keyboard_input.just_released(KeyCode::W) {
+        config.ALIGNMENT_RAD += 10.0;
+    }
+    config.ALIGNMENT_RAD = config.ALIGNMENT_RAD.max(0.0);
+
+    if keyboard_input.just_released(KeyCode::A) {
+        config.COHESION_RAD -= 10.0;
+    }
+    if keyboard_input.just_released(KeyCode::S) {
+        config.COHESION_RAD += 10.0;
+    }
+    config.COHESION_RAD = config.COHESION_RAD.max(0.0);
+
+    if keyboard_input.just_released(KeyCode::Z) {
+        config.SEPARATION_RAD -= 10.0;
+    }
+    if keyboard_input.just_released(KeyCode::X) {
+        config.SEPARATION_RAD += 10.0;
+    }
+    config.SEPARATION_RAD = config.SEPARATION_RAD.max(0.0);
 }
 
 fn show_info_system(config: Res<BirdConfig>, mut query: Query<&mut Text>) {
